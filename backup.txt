@@ -1,0 +1,91 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
+
+# Função para atualizar a URL com o parâmetro da página
+def set_page(page):
+    st.experimental_set_query_params(page=page)
+    st.session_state.page = page
+
+
+# Defina a página inicial como padrão
+query_params = st.experimental_get_query_params()
+
+if "page" in query_params:
+    st.session_state.page = query_params["page"][0]
+else:
+    st.session_state.page = "inicio"
+
+# Estilo dos botões da sidebar
+st.markdown(
+    """
+    <style>
+    .sidebar .sidebar-content {
+        background-color: #202020;
+        padding-top: 20px;
+    }
+    .css-1v3fvcr {
+        background-color: #202020;
+        border-radius: 20px;
+        color: white;
+        padding: 10px 15px;
+        text-align: left;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+    .css-1v3fvcr:hover {
+        background-color: #333333;
+        color: #ffffff;
+    }
+    .icon-space {
+        padding-right: 10px;
+    }
+    .css-1d391kg {
+        background-color: #333333;
+        border-radius: 20px;
+        color: white;
+        padding: 10px 15px;
+        text-align: left;
+        font-size: 10px;
+        display: flex;
+        align-items: left;
+    }
+    .css-1d391kg:hover {
+        background-color: #444444;
+        color: #ffffff;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Barra lateral com botões que definem a página
+st.sidebar.button("Início", on_click=lambda: set_page("inicio"))
+st.sidebar.button("Dados datasheet", on_click=lambda: set_page("dados_datasheet"))
+st.sidebar.button("Previsão de saída", on_click=lambda: set_page("previsao_saida"))
+st.sidebar.button("Gráficos", on_click=lambda: set_page("graficos"))
+st.sidebar.button("Tabela de Resultados", on_click=lambda: set_page("tabela_resultados"))
+
+# Carregar a página correspondente com base no estado da sessão
+if st.session_state.page == "inicio":
+    st.write("# Página Inicial")
+    st.write("Bem-vindo à Página Inicial do Modelo Matemático Preditivo para Hidrogênio Verde.")
+elif st.session_state.page == "dados_datasheet":
+    st.write("# Dados do Datasheet")
+    st.write("Aqui você pode inserir os dados do datasheet do módulo fotovoltaico.")
+    # Adicione sua lógica aqui para tratar os dados do datasheet
+elif st.session_state.page == "previsao_saida":
+    st.write("# Previsão de Saída")
+    st.write("Aqui você verá a previsão dos parâmetros de saída.")
+    # Adicione sua lógica para calcular e exibir os parâmetros de saída
+elif st.session_state.page == "graficos":
+    st.write("# Gráficos")
+    st.write("Aqui você poderá visualizar os gráficos gerados.")
+    # Adicione a lógica para exibir os gráficos
+elif st.session_state.page == "tabela_resultados":
+    st.write("# Tabela de Resultados")
+    st.write("Aqui você pode ver a tabela de resultados.")
+    # Adicione a lógica para exibir a tabela de resultados

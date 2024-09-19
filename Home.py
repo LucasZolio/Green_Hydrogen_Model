@@ -11,12 +11,12 @@ st.set_page_config(
 texts = {
     "en": {
         "title": "Predictive Mathematical Model for Green Hydrogen",
-        "description": "This model will predict the amount of hydrogen by inputting data from the photovoltaic module datasheet!",
+        "description": "Interactive website where users input data such as solar irradiance, ambient temperature, photovoltaic module efficiency, and the amount of energy they wish to convert into hydrogen. The platform calculates the amount of hydrogen that can be generated from the energy produced by the photovoltaic modules.",
         "separator": "---"
     },
     "pt": {
         "title": "Modelo Matemático Preditivo para Hidrogênio Verde",
-        "description": "Este modelo preverá a quantidade de hidrogênio inserindo dados da folha de dados do módulo fotovoltaico!",
+        "description": "Site interativo onde os usuários inserem dados como irradiância solar, temperatura ambiente, eficiência do módulo fotovoltaico, e a quantidade de energia que desejam converter em hidrogênio. A plataforma calcula a quantidade de hidrogênio que pode ser gerada a partir da energia produzida pelos módulos fotovoltaicos.",
         "separator": "---"
     }
 }

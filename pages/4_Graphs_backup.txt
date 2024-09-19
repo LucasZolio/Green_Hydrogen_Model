@@ -1,0 +1,85 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+with st.container():
+    st.title("Gráficos dos Resultados")
+    st.write("Comparação entre os dados do Datasheet e os resultados calculados com base na Irradiância e Temperatura.")
+    
+# Separador final
+with st.container():
+    st.write("---")
+
+# Função para carregar os dados do datasheet e os calculados
+@st.cache_data
+def load_data(datasheet_file, calculated_file):
+    # Carregar os arquivos CSV
+    try:
+        datasheet = pd.read_csv(datasheet_file)
+        calculated = pd.read_csv(calculated_file)
+        return datasheet, calculated
+    except Exception as e:
+        st.error(f"Erro ao carregar os arquivos CSV: {e}")
+        return None, None
+
+# Função para gerar gráficos de comparação com base na seleção (Imax, Vmax, Pmax)
+def plot_comparison(df, parameter, title):
+    # Criando scatter plot com customização do marker
+    fig = px.scatter(df, 
+                     x='Irradiance', 
+                     y=[f'{parameter}_datasheet', f'{parameter}_calculated'], 
+                     labels={"variable": "Legenda", "value": f'{parameter} (A)'}, 
+                     title=title)
+    
+    # Atualizando símbolos e cores dos markers
+    fig.for_each_trace(lambda t: t.update(marker_symbol="x", marker_color="red") 
+                       if t.name == f'{parameter}_datasheet' else t.update(marker_symbol="circle", marker_color="blue"))
+
+    # Customizando o layout e movendo a legenda para baixo
+    fig.update_layout(
+        xaxis_title="Irradiância (W/m²)",
+        yaxis_title=f'{parameter} (A)',
+        legend_title_text='Tipo',
+        legend=dict(
+            orientation="h",  # Legenda horizontal
+            yanchor="top",
+            y=-0.2,  # Coloca a legenda abaixo do gráfico
+            xanchor="center",
+            x=0.5
+        )
+    )
+    
+    return fig
+
+# Upload dos arquivos CSV (Datasheet e Resultados Calculados)
+uploaded_datasheet = st.sidebar.file_uploader("Faça o upload do arquivo de dados (Datasheet)", type=["csv"])
+uploaded_calculated = st.sidebar.file_uploader("Faça o upload dos resultados calculados (CSV)", type=["csv"])
+
+# Adicionando as opções de seleção para os parâmetros com Radio Buttons
+selected_parameter = st.sidebar.radio("Selecione o parâmetro para plotar", options=['Imax', 'Vmax', 'Pmax'])
+
+# Verificar se ambos os arquivos foram carregados corretamente
+if uploaded_datasheet is not None and uploaded_calculated is not None:
+    # Carregar os arquivos
+    datasheet, calculated = load_data(uploaded_datasheet, uploaded_calculated)
+    
+    if datasheet is not None and calculated is not None:
+        # Unir os dados de acordo com a Irradiância
+        if 'Irradiance' in calculated.columns:
+            df_combined = pd.merge(calculated, datasheet, how='left', on='Irradiance', suffixes=('_calculated', '_datasheet'))
+        else:
+            st.sidebar.error("O arquivo de resultados calculados não contém uma coluna de Irradiância.")
+    else:
+        st.sidebar.error("Erro ao carregar os arquivos.")
+else:
+    st.sidebar.warning("Por favor, faça o upload de ambos os arquivos.")
+
+# Verificar se os dados combinados estão prontos para exibir os gráficos
+if 'df_combined' in locals():
+    # Exibindo o gráfico selecionado
+    with st.container():
+        st.plotly_chart(plot_comparison(df_combined, selected_parameter, f'Gráfico de {selected_parameter}: Previsto vs Referência'), use_container_width=True)
+
+    # Separador final
+    with st.container():
+        st.write("---")

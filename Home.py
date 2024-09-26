@@ -50,7 +50,7 @@ if 'language' not in st.session_state:
     st.session_state.language = 'pt'  # Padrão é português
 
 # Layout para as bandeiras e troca de idioma no canto superior direito
-col1, col2, col3 = st.columns([8, 0.4, 1])  # Diminuindo o espaço entre as colunas
+col1, col2, col3 = st.columns([8, 0.6, 1])  # Diminuindo o espaço entre as colunas
 
 with col2:  # Alterando ordem para exibir US primeiro
     if st.button("🇺🇸"):  # Botão da bandeira dos EUA

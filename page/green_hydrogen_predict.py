@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from googletrans import Translator
+import os
 
 # Instancia o tradutor
 translator = Translator()
@@ -19,6 +20,9 @@ def green_hydrogen_predict():
 
     # Função para salvar dados atualizados no cache
     def save_to_cache():
+        # Cria o diretório se ele não existir
+        os.makedirs('/mnt/data/', exist_ok=True)
+        # Salva o arquivo CSV
         st.session_state['inputs_history'].to_csv('/mnt/data/calculated_results.csv', index=False)
 
     # Título e descrição com tradução

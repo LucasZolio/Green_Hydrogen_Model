@@ -18,10 +18,8 @@ def green_hydrogen_predict():
             st.session_state['inputs_history'] = pd.DataFrame(columns=['Module Type', 'Irradiance', 'Temperature', 'Imax_calculated', 'Vmax_calculated', 'Pmax_calculated'])
 
     # Função para salvar dados atualizados no cache
-def save_to_cache():
-    # Cria o diretório se ele não existir
-    os.makedirs('/mnt/data/', exist_ok=True)
-    st.session_state['inputs_history'].to_csv('/mnt/data/calculated_results.csv', index=False)
+    def save_to_cache():
+        st.session_state['inputs_history'].to_csv('/mnt/data/calculated_results.csv', index=False)
 
     # Título e descrição com tradução
     st.title(translator.translate("Green Hydrogen Performance Predictor", dest=st.session_state.language).text)

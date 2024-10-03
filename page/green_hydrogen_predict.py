@@ -18,12 +18,14 @@ def green_hydrogen_predict():
         except FileNotFoundError:
             st.session_state['inputs_history'] = pd.DataFrame(columns=['Module Type', 'Irradiance', 'Temperature', 'Imax_calculated', 'Vmax_calculated', 'Pmax_calculated'])
 
-    # Função para salvar dados atualizados no cache
+    # Função para salvar dados atualizados no cache e no CSV
     def save_to_cache():
         # Cria o diretório se ele não existir
-        os.makedirs('/mnt/data/', exist_ok=True)
+        directory = '/mnt/data/'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
         # Salva o arquivo CSV
-        st.session_state['inputs_history'].to_csv('/mnt/data/calculated_results.csv', index=False)
+        st.session_state['inputs_history'].to_csv(os.path.join(directory, 'calculated_results.csv'), index=False)
 
     # Título e descrição com tradução
     st.title(translator.translate("Green Hydrogen Performance Predictor", dest=st.session_state.language).text)

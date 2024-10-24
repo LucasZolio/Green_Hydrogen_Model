@@ -13,8 +13,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'page'))
 # Importa as páginas
 from data import data
 from graphs import graphs
-from green_hydrogen_predict import green_hydrogen_predict
-from result_table import results
+from predict import green_hydrogen_predict
+from results import results
 
 # Configuração da página
 st.set_page_config(
@@ -72,11 +72,11 @@ def set_page(page_name):
 def home():
     # Texto em português (original)
     titulo_pt = "Modelo Matemático Preditivo para Hidrogênio Verde"
-    descricao_pt = "Site interativo onde os usuários inserem dados como irradiância solar, temperatura ambiente, eficiência do módulo fotovoltaico, e a quantidade de energia que desejam converter em hidrogênio."
+    descricao_pt = "Site interativo onde os usuários inserem dados como irradiância solar, temperatura ambiente, eficiência do módulo fotovoltaico, e a quantidade de energia que desejam converter."
 
     # Texto em inglês (traduzido)
     titulo_en = "Predictive Mathematical Model for Green Hydrogen"
-    descricao_en = "Interactive site where users enter data such as solar irradiance, ambient temperature, photovoltaic module efficiency, and the amount of energy they want to convert into hydrogen."
+    descricao_en = "Interactive site where users enter data such as solar irradiance, ambient temperature, photovoltaic module efficiency, and the amount of energy they want to convert."
 
     # Verificar o idioma atual e definir o conteúdo corretamente
     if st.session_state.language == 'en':

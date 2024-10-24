@@ -1,0 +1,240 @@
+import streamlit as st
+import pandas as pd
+from googletrans import Translator
+
+def data():
+    # Inicializa o tradutor
+    translator = Translator()
+
+    # Função para traduzir o texto, exceto para letras gregas e NOCT
+    def translate(text, lang):
+        if any(greek in text for greek in ["α", "β", "γ", "μ", "NOCT"]):
+            return text
+        return translator.translate(text, dest=lang).text
+
+    # Função para armazenar os dados no cache
+    @st.cache_data
+    def store_data(module_type, pmax, vmax, imax, voc, isc, alpha, beta, gamma, mu, noct, cells, diode_factor, irradiance, temperature):
+        return {
+            "module_type": module_type,
+            "Pmax_datasheet": pmax,
+            "Vmax_datasheet": vmax,
+            "Imax_datasheet": imax,
+            "voc_datasheet": voc,
+            "isc_datasheet": isc,
+            "alpha": alpha,
+            "beta": beta,
+            "gamma": gamma,
+            "mu": mu,  # Salva o valor de mu
+            "noct": noct,
+            "cells": cells,
+            "diode_factor": diode_factor,
+            "Irradiance": irradiance,
+            "Temperature": temperature  # Inclui o parâmetro de temperatura
+        }
+
+    # Função para exportar em .csv
+    def export_csv(data_dict):
+        df = pd.DataFrame([data_dict])
+        return df.to_csv(index=False)
+
+    # Define o idioma padrão como inglês
+    if 'language' not in st.session_state:
+        st.session_state.language = 'en'
+
+    # Inicializa 'stored_data' no session_state se não estiver presente
+    if 'stored_data' not in st.session_state:
+        st.session_state['stored_data'] = {}
+
+    # Definir o código do idioma (en = inglês, pt = português)
+    lang_code = st.session_state.language
+
+    # Dicas em português e inglês
+    hints = {
+        "en": {
+            "alpha": "Short-Circuit Current Temperature Coefficient (α): Indicates the percentage variation of the short-circuit current with temperature.",
+            "beta": "Open-Circuit Voltage Temperature Coefficient (β): Represents the percentage variation of the open-circuit voltage with temperature.",
+            "gamma": "Power Temperature Coefficient (γ): Refers to the percentage variation of power with temperature.",
+            "mu": "Efficiency (μ): Represents the percentage decrease in module efficiency per year.",
+            "noct": "Nominal Operating Cell Temperature (NOCT): The temperature the module reaches under standard test conditions (800 W/m² irradiance, 20°C ambient temperature, and 1 m/s wind speed).",
+            "cells": "Number of photovoltaic cells: Number of cells in the photovoltaic module according to the datasheet.",
+            "diode_factor": "Diode ideality factor: Represents the quality of the diode in the single diode model."
+        },
+        "pt": {
+            "alpha": "Coeficiente de temperatura da corrente de curto-circuito (α): Indica a variação percentual da corrente de curto-circuito com a temperatura.",
+            "beta": "Coeficiente de temperatura da tensão de circuito aberto (β): Representa a variação percentual da tensão de circuito aberto com a temperatura.",
+            "gamma": "Coeficiente de temperatura da potência (γ): Refere-se à variação percentual da potência com a temperatura.",
+            "mu": "Eficiência (μ): Representa a diminuição percentual da eficiência do módulo por ano.",
+            "noct": "Temperatura nominal de operação da célula (NOCT): Temperatura que o módulo alcança em condições padrão de teste (800 W/m² de irradiância, 20°C de temperatura ambiente, e 1 m/s de velocidade do vento).",
+            "cells": "Número de células fotovoltaicas: Quantidade de células no módulo fotovoltaico conforme o datasheet.",
+            "diode_factor": "Fator de idealidade do diodo: Representa a qualidade do diodo no modelo de diodo simples."
+        }
+    }
+
+    # Exibir o conteúdo da página com base no idioma selecionado
+    with st.container():
+        # Alteração dos títulos e descrições
+        st.title(translate("Dados da folha de dados Dados elétricos", lang_code))  # Título 2 no lugar do Título 1
+        st.write(translate("Digite os dados elétricos do módulo fotovoltaico!", lang_code))  # Descrição 2 no lugar da Descrição 1
+
+    with st.container():
+        st.write("---")
+
+    # Adicionar botões de rádio logo abaixo da linha
+    source_type = st.radio(
+        translate("Fonte de dados", lang_code),
+        [translate("Usina fotovoltaica", lang_code), translate("Módulo fotovoltaico", lang_code)]
+    )
+
+    if source_type == translate("Usina fotovoltaica", lang_code):
+        # Verifica se os dados já foram carregados no cache
+        if 'stored_data' not in st.session_state or not st.session_state['stored_data']:
+            st.warning("Dados do módulo não encontrados no cache. Faça o upload do arquivo CSV.")
+        
+        # Upload do arquivo CSV
+        uploaded_file = st.file_uploader(translate("Carregue a folha de dados do módulo fotovoltaico (CSV)", lang_code), type="csv")
+
+        if uploaded_file:
+            # Carregar os dados do CSV em um DataFrame
+            df = pd.read_csv(uploaded_file)
+            st.session_state['stored_data'] = df.to_dict(orient="records")[0]  # Armazena os dados no cache
+            st.success("Dados elétricos do módulo fotovoltaico carregados e armazenados com sucesso em cache!")
+
+        if 'stored_data' in st.session_state:
+            # Verifique se as chaves existem antes de acessá-las
+            if all(key in st.session_state['stored_data'] for key in ['Pmax_datasheet', 'Vmax_datasheet', 'Imax_datasheet']):
+                pmax = st.session_state['stored_data']['Pmax_datasheet']
+                vmax = st.session_state['stored_data']['Vmax_datasheet']
+                imax = st.session_state['stored_data']['Imax_datasheet']
+                mu = st.session_state['stored_data']['mu'] / 100 # Pega o valor de mu
+            else:
+                st.error("Os dados elétricos necessários não foram encontrados no arquivo CSV.")
+                return
+            
+            # Entradas numéricas
+            num_modulos = st.number_input(translate("Número de módulos por string", lang_code), min_value=1, value=13)
+            num_strings = st.number_input(translate("Número de strings", lang_code), min_value=1, value=3)
+            input_temperature = st.number_input(translate("Temperatura (°C):", lang_code), min_value=0.0, value=25.0)
+
+            # Cálculos dos parâmetros do sistema
+            Imax_sis = imax * num_strings
+            Vmax_sis = vmax * num_modulos
+            Pmax_sis = pmax * num_modulos * num_strings * (1 - mu)  # Inclui a degradação de mu
+
+            # Lógica de conversão para unidades maiores
+            if Pmax_sis >= 1000000:
+                Pmax_sis = round(Pmax_sis / 1000000, 2)  # Converter para TW
+                unidade_potencia = "TW"
+            elif Pmax_sis >= 1000:
+                Pmax_sis = round(Pmax_sis / 1000, 2)  # Converter para MW
+                unidade_potencia = "MW"
+            else:
+                Pmax_sis = round(Pmax_sis, 2)  # Manter em W
+                unidade_potencia = "W"
+
+            # Transformar valores de corrente
+            if Imax_sis >= 1000:
+                Imax_sis = round(Imax_sis / 1000, 2)  # Converter para kA
+                unidade_corrente = "kA"
+            else:
+                Imax_sis = round(Imax_sis, 2)  # Manter em A
+                unidade_corrente = "A"
+
+            # Transformar valores de tensão
+            if Vmax_sis >= 1000:
+                Vmax_sis = round(Vmax_sis / 1000, 2)  # Converter para kV
+                unidade_tensao = "kV"
+            else:
+                Vmax_sis = round(Vmax_sis, 2)  # Manter em V
+                unidade_tensao = "V"
+
+            # Exibir os resultados
+            total_modulos = num_modulos * num_strings
+            st.write(f"Total de módulos na usina: {total_modulos}")
+            st.write(f"Corrente total da usina: {Imax_sis} {unidade_corrente}")
+            st.write(f"Tensão total da usina: {Vmax_sis} {unidade_tensao}")
+            st.write(f"Potência total da usina: {Pmax_sis} {unidade_potencia}")
+
+            # Botão para salvar os dados em CSV
+            csv_data = export_csv(st.session_state['stored_data'])
+            st.download_button(label=translate("Baixe CSV", lang_code), data=csv_data, file_name="photovoltaic_plant_data.csv", mime="text/csv")
+
+    else:
+        # Lógica para Módulo fotovoltaico
+        form_data = st.form(key="data_datasheet", clear_on_submit=True)
+        # Obtendo a lista de tipos de módulos fotovoltaicos
+        photovoltaic_module_type = ["Monocrystalline (m-Si)", "Polycrystalline (p-Si)", "Cadmium Telluride (CdTe)", "Copper Indium Gallium Selenide (CIGS)", "Perovskite"]
+
+        # Traduzir a lista de tipos de módulos, se necessário
+        photovoltaic_module_type_translated = [translate(module, lang_code) for module in photovoltaic_module_type]
+
+        with form_data:
+            # Dividindo as entradas em 3 colunas
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                input_module_type = st.selectbox(translate("Selecione o tipo de módulo fotovoltaico a ser analisado:", lang_code), photovoltaic_module_type_translated)
+                input_power = st.number_input(translate("Poder (W):", lang_code), min_value=0.0)
+                input_voltage_max = st.number_input(translate("Tensão máxima (V):", lang_code), min_value=0.0)
+                input_current_max = st.number_input(translate("Corrente máxima (A):", lang_code), min_value=0.0)
+                input_voltage_open = st.number_input(translate("Tensão de circuito aberto (V):", lang_code), min_value=0.0)
+
+            with col2:
+                input_current_short = st.number_input(translate("Corrente de curto-circuito (A):", lang_code), min_value=0.0)
+                input_alpha = st.number_input(
+                    translate("α (%/°C):", lang_code),
+                    min_value=0.0,
+                    format="%.5f",
+                    help=hints[lang_code]["alpha"]
+                )
+                input_beta = st.number_input(
+                    translate("β (%/°C):", lang_code),
+                    format="%.5f",
+                    help=hints[lang_code]["beta"]
+                )
+                input_gamma = st.number_input(
+                    translate("γ (%/°C):", lang_code),
+                    format="%.5f",
+                    help=hints[lang_code]["gamma"]
+                )
+                input_mu = st.number_input(
+                    translate("μ (%):", lang_code),
+                    min_value=0.0,
+                    help=hints[lang_code]["mu"]
+                ) / 100
+
+            with col3:
+                input_noct = st.number_input(
+                    translate("NOCT (°C):", lang_code),
+                    min_value=0.0,
+                    help=hints[lang_code]["noct"]
+                )
+                input_cells = st.number_input(
+                    translate("Número de células fotovoltaicas da folha de dados:", lang_code),
+                    min_value=0,
+                    help=hints[lang_code]["cells"]
+                )
+                input_diode_factor = st.number_input(
+                    translate("Fator de idealidade do diodo:", lang_code),
+                    min_value=0.0,
+                    help=hints[lang_code]["diode_factor"]
+                )
+
+            button_submit = form_data.form_submit_button(translate("Enviar", lang_code))
+
+        if button_submit:
+            # Valores padrão para Irradiância e Temperatura
+            input_irradiance = 1000  # Padrão: 1000 W/m²
+            input_temperature = 25    # Padrão: 25°C
+
+            # Salva os dados no cache usando st.session_state
+            st.session_state['stored_data'] = store_data(input_module_type, input_power, input_voltage_max, input_current_max,
+                                                         input_voltage_open, input_current_short, input_alpha, input_beta,
+                                                         input_gamma, input_mu, input_noct, input_cells, input_diode_factor, 
+                                                         input_irradiance, input_temperature)
+            st.success(translate("Dados salvos com sucesso!", lang_code))
+
+        # Botão para salvar os dados em CSV (fora do formulário)
+        if 'stored_data' in st.session_state:
+            csv_data = export_csv(st.session_state['stored_data'])
+            st.download_button(label=translate("Baixe CSV", lang_code), data=csv_data, file_name="datasheet_data.csv", mime="text/csv")

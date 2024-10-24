@@ -20,32 +20,26 @@ def green_hydrogen_predict():
 
     # Função para salvar dados atualizados no cache e no CSV
     def save_to_cache():
-        # Cria o diretório se ele não existir
         directory = '/mnt/data/'
         if not os.path.exists(directory):
             os.makedirs(directory)
-        # Salva o arquivo CSV
         st.session_state['inputs_history'].to_csv(os.path.join(directory, 'calculated_results.csv'), index=False)
 
-    # Título e descrição com tradução
     st.title(translator.translate("Green Hydrogen Performance Predictor", dest=st.session_state.language).text)
     st.write(translator.translate(
         "Input photovoltaic module data and predict the performance of green hydrogen generation under varying solar conditions. This tool provides theoretical calculations based on irradiance and temperature inputs, helping to estimate key parameters like Imax, Vmax, and Pmax.",
         dest=st.session_state.language).text)
 
-    # Separador
     st.write(translator.translate("---", dest=st.session_state.language).text)
 
     @st.cache_data
     def carregar_dados_cache():
-        """Função para carregar os dados do cache se disponíveis."""
         if 'store_data' in st.session_state:
             return st.session_state['store_data']
         return None
 
     @st.cache_data
     def carregar_dados_datasheet(arquivo_csv):
-        """Função para carregar dados do CSV fornecido pelo usuário."""
         try:
             dados = pd.read_csv(arquivo_csv)
             st.session_state['store_data'] = dados
@@ -54,13 +48,10 @@ def green_hydrogen_predict():
             st.error(f"Error loading the CSV file: {e}")
             return None
 
-    # Carregar dados do cache
     dados_eletricos = carregar_dados_cache()
 
-    # Dividir a tela em duas colunas
     col1, col2 = st.columns(2)
 
-    # Coluna 1: Upload de arquivo
     with col1:
         if dados_eletricos is None:
             st.warning(translator.translate("Module data not found in cache. Please upload the CSV file.", dest=st.session_state.language).text)
@@ -73,7 +64,6 @@ def green_hydrogen_predict():
             else:
                 st.stop()
 
-    # Coluna 2: Seleção de tipo de cálculo
     with col2:
         if dados_eletricos is not None:
             try:
@@ -83,75 +73,86 @@ def green_hydrogen_predict():
                 st.error(translator.translate("The CSV file does not contain all the required columns. Please check the file format.", dest=st.session_state.language).text)
                 st.stop()
 
-            tipo_calculo = st.radio(translator.translate("Select the calculation type", dest=st.session_state.language).text, ("Real", "Theoretical"))
+            tipo_calculo = st.radio(translator.translate("Select the calculation type", dest=st.session_state.language).text, ("Real", "Theoretical"), index=1)
 
-    # Continuação com os cálculos na mesma lógica anterior
     if dados_eletricos is not None and tipo_calculo == "Theoretical":
         with st.container():
             irradiance = st.number_input(translator.translate("Enter the Irradiance (W·m⁻²)", dest=st.session_state.language).text, min_value=0.0, step=0.1)
             temperature = st.number_input(translator.translate("Enter the Temperature (°C)", dest=st.session_state.language).text, min_value=-5.0, step=0.1)
 
-            # Definir os valores de referência
             Tref = 25  # Temperatura de referência (°C)
             Gref = 1000  # Irradiância de referência (W/m²)
 
-            def calcular_parametros(T, G):
-                """Função para calcular parâmetros teóricos com base nos dados de irradiância e temperatura."""
-                if all(col in dados_eletricos.columns for col in ['isc_datasheet', 'voc_datasheet', 'Imax_datasheet', 'Vmax_datasheet', 'alpha', 'beta']):
-                    isc = float(dados_eletricos['isc_datasheet'].values[0])
-                    voc = float(dados_eletricos['voc_datasheet'].values[0])
-                    imax = float(dados_eletricos['Imax_datasheet'].values[0])
-                    vmax = float(dados_eletricos['Vmax_datasheet'].values[0])
-                    alpha = float(dados_eletricos['alpha'].values[0])
-                    beta = float(dados_eletricos['beta'].values[0])
+            def calcular_parametros(T, G, row):
+                try:
+                    if all(col in row.index for col in ['isc_datasheet', 'voc_datasheet', 'Imax_datasheet', 'Vmax_datasheet', 'alpha', 'beta', 'Imax_sis', 'Vmax_sis', 'Pmax_sis']):
+                        isc = float(row['isc_datasheet'])
+                        voc = float(row['voc_datasheet'])
+                        imax = float(row['Imax_datasheet'])
+                        vmax = float(row['Vmax_datasheet'])
+                        alpha = float(row['alpha'])
+                        beta = float(row['beta'])
+                        Imax_sis = float(row['Imax_sis'])
+                        Vmax_sis = float(row['Vmax_sis'])
+                        Pmax_sis = float(row['Pmax_sis'])
 
-                    # Cálculos com base na irradiância e temperatura fornecidas
-                    Imax_calculado = imax * (G / Gref) * (1 + alpha * (T - Tref))
-                    Vmax_calculado = vmax * (1 + beta * (T - Tref))
-                    Pmax_calculado = round(Imax_calculado * Vmax_calculado, 2)
+                        Imax_calculado = imax * (G / Gref)
+                        Vmax_calculado = vmax * (1 + beta * (T - Tref))
+                        Pmax_calculado = round(Imax_calculado * Vmax_calculado, 2)
+                        Imax_sis_calculado = Imax_sis * (G / Gref)
+                        Vmax_sis_calculado = Vmax_sis * (1 + beta * (T - Tref))
+                        Pmax_sis_calculado = Imax_sis_calculado * Vmax_sis_calculado
 
-                    return Imax_calculado, Vmax_calculado, Pmax_calculado
-                else:
-                    st.error(translator.translate("The CSV file does not contain all the required columns. Please check the file format.", dest=st.session_state.language).text)
-                    return None, None, None
+                        return Imax_calculado, Vmax_calculado, Pmax_calculado, Imax_sis_calculado, Vmax_sis_calculado, Pmax_sis_calculado
+                except KeyError as e:
+                    st.error(translator.translate(f"Missing required column in CSV: {str(e)}", dest=st.session_state.language).text)
+                return None, None, None, None, None, None
 
-            # Botão para calcular os parâmetros
             if st.button(translator.translate("Calculate", dest=st.session_state.language).text):
                 if irradiance and temperature:
                     st.success(translator.translate(f"Irradiance: {irradiance} W·m⁻²", dest=st.session_state.language).text)
                     st.success(translator.translate(f"Temperature: {temperature} °C", dest=st.session_state.language).text)
 
-                    # Cálculo dos parâmetros
-                    Imax_calculado, Vmax_calculado, Pmax_calculado = calcular_parametros(temperature, irradiance)
+                    novos_dados = []
+                    for idx, row in dados_eletricos.iterrows():
+                        Imax_calculado, Vmax_calculado, Pmax_calculado, Imax_sis_calculado, Vmax_sis_calculado, Pmax_sis_calculado = calcular_parametros(temperature, irradiance, row)
+                        if Imax_calculado is not None:
+                            novos_dados.append({
+                                'Module Type': row['module_type'],
+                                'Irradiance': irradiance,
+                                'Temperature': temperature,
+                                'Imax': round(Imax_calculado, 2),
+                                'Vmax': round(Vmax_calculado, 2),
+                                'Pmax': round(Pmax_calculado, 0),
+                                'Imax_sis': round(Imax_sis_calculado, 2),
+                                'Vmax_sis': round(Vmax_sis_calculado, 2),
+                                'Pmax_sis': round(Pmax_sis_calculado, 0)
+                            })
+                            
+                            # Exibir os resultados para o módulo
+                            #st.write(f"Imax Calculado (Módulo): {Imax_calculado} A")
+                            #st.write(f"Vmax Calculado (Módulo): {Vmax_calculado} V")
+                            #st.write(f"Pmax Calculado (Módulo): {Pmax_calculado} W")
+                            
+                            # Exibir os resultados para a usina
+                            st.write(f"Imax Calculado (Usina): {Imax_sis_calculado} A")
+                            st.write(f"Vmax Calculado (Usina): {Vmax_sis_calculado} V")
+                            st.write(f"Pmax Calculado (Usina): {Pmax_sis_calculado} W")
 
-                    if Imax_calculado is not None:
-                        st.write(translator.translate(f"Imax calculated: {round(Imax_calculado, 2)} A", dest=st.session_state.language).text)
-                        st.write(translator.translate(f"Vmax calculated: {round(Vmax_calculado, 2)} V", dest=st.session_state.language).text)
-                        st.write(translator.translate(f"Pmax calculated: {round(Pmax_calculado, 0)} W", dest=st.session_state.language).text)
+                    novos_dados_df = pd.DataFrame(novos_dados)
 
-                        # Salvar novo input nos dados do histórico
-                        novo_input = pd.DataFrame({
-                            'Module Type': [module_type],
-                            'Irradiance': [irradiance],
-                            'Temperature': [temperature],
-                            'Imax_calculated': [round(Imax_calculado, 2)],
-                            'Vmax_calculated': [round(Vmax_calculado, 2)],
-                            'Pmax_calculated': [round(Pmax_calculado, 0)]
-                        })
+                    st.session_state['inputs_history'] = pd.concat([st.session_state['inputs_history'], novos_dados_df], ignore_index=True)
 
-                        st.session_state['inputs_history'] = pd.concat([st.session_state['inputs_history'], novo_input], ignore_index=True)
+                    save_to_cache()
 
-                        # Salvar dados em um arquivo CSV e no cache
-                        save_to_cache()
-
-                        csv_historico = st.session_state['inputs_history'].to_csv(index=False)
-                        st.download_button(
-                            label=translator.translate("Download Updated CSV", dest=st.session_state.language).text,
-                            data=csv_historico,
-                            file_name="calculated_theorical_results.csv",
-                            mime="text/csv"
-                        )
+                    csv_historico = novos_dados_df.to_csv(index=False)
+                    st.download_button(
+                        label=translator.translate("Download Updated CSV", dest=st.session_state.language).text,
+                        data=csv_historico,
+                        file_name="calculated_system_results.csv",
+                        mime="text/csv"
+                    )
                 else:
                     st.error(translator.translate("Please enter the values correctly.", dest=st.session_state.language).text)
-    else: 
+    else:
         st.write(translator.translate("Work in Process (W.I.P)", dest=st.session_state.language).text)

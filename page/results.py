@@ -19,7 +19,7 @@ def results():
     # Textos originais em inglês
     texts = {
         "title": "Calculated Data Results",
-        "description": "Here you will find the calculated results, including hydrogen production forecasts based on the provided irradiance and temperature data, as well as the maximum values of current, voltage, and power for the photovoltaic module.",
+        "description": "Here you will find the calculated results, including hydrogen production forecasts based on the provided irradiance and temperature data, as well as the maximum values of current, voltage, and power for the photovoltaic module or photpvoltaic plant.",
         "separator": "---",
         "upload_label": "Upload the calculated results (CSV)",
         "results_table_title": "Results Table",

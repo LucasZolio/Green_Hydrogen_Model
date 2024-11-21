@@ -1,2 +1,2 @@
 module_type,Pmax_datasheet,Vmax_datasheet,Imax_datasheet,voc_datasheet,isc_datasheet,alpha,beta,gamma,mu,noct,cells,diode_factor,Irradiance,Temperature,total_modulos,Imax_sis,Vmax_sis,Pmax_sis
-Policristalino (P-Si),245.0,30.2,8.11,37.8,8.63,0.0006,-0.00045,-0.00125,0.15,46.0,60,1.3,1000,25,10,8.11,302.0,2.45
+Policristalino (P-Si),245.0,30.2,8.11,37.8,8.63,0.0006,-0.00045,-0.00125,0.15,46.0,60,1.3,1000,25,15,8.11,453.0,3.67

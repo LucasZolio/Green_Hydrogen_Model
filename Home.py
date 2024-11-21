@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'page'))
 # Importa as páginas
 from data import data
 from graphs import graphs
-from predict import green_hydrogen_predict
+from predict import predict_data
 from results import results
 
 # Configuração da página
@@ -71,11 +71,11 @@ def set_page(page_name):
 # Função principal que contém o restante do código
 def home():
     # Texto em português (original)
-    titulo_pt = "Modelo Matemático Preditivo para Hidrogênio Verde"
+    titulo_pt = "Modelo Matemático Preditivo"
     descricao_pt = "Site interativo onde os usuários inserem dados como irradiância solar, temperatura ambiente, eficiência do módulo fotovoltaico, e a quantidade de energia que desejam converter."
 
     # Texto em inglês (traduzido)
-    titulo_en = "Predictive Mathematical Model for Green Hydrogen"
+    titulo_en = "Predictive Mathematical Model"
     descricao_en = "Interactive site where users enter data such as solar irradiance, ambient temperature, photovoltaic module efficiency, and the amount of energy they want to convert."
 
     # Verificar o idioma atual e definir o conteúdo corretamente
@@ -101,8 +101,8 @@ if st.sidebar.button("Início" if st.session_state.language == 'pt' else "Home")
 if st.sidebar.button("Dados" if st.session_state.language == 'pt' else "Data"):
     set_page('data')
 
-if st.sidebar.button("Predição de Hidrogênio Verde" if st.session_state.language == 'pt' else "Green Hydrogen Prediction"):
-    set_page('green_hydrogen')
+if st.sidebar.button("Prever" if st.session_state.language == 'pt' else "Predict"):
+    set_page('predict')
 
 if st.sidebar.button("Gráficos" if st.session_state.language == 'pt' else "Graphs"):
     set_page('graphs')
@@ -115,8 +115,8 @@ if st.session_state.current_page == 'home':
     home()
 elif st.session_state.current_page == 'data':
     data()
-elif st.session_state.current_page == 'green_hydrogen':
-    green_hydrogen_predict()
+elif st.session_state.current_page == 'predict':
+    predict_data()
 elif st.session_state.current_page == 'graphs':
     graphs()
 elif st.session_state.current_page == 'results':

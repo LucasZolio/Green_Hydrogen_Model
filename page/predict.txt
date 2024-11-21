@@ -6,7 +6,7 @@ import os
 # Instancia o tradutor
 translator = Translator()
 
-def green_hydrogen_predict():
+def predict_data():
     # Define o idioma padrão como inglês
     if 'language' not in st.session_state:
         st.session_state.language = 'en'  # Começa com inglês
@@ -27,7 +27,7 @@ def green_hydrogen_predict():
 
     st.title(translator.translate("Green Hydrogen Performance Predictor", dest=st.session_state.language).text)
     st.write(translator.translate(
-        "Input photovoltaic module data and predict the performance of green hydrogen generation under varying solar conditions. This tool provides theoretical calculations based on irradiance and temperature inputs, helping to estimate key parameters like Imax, Vmax, and Pmax.",
+        "Input data photovoltaic module or plant and predict the performance under varying solar conditions. This tool provides theoretical calculations based on irradiance and temperature inputs, helping to estimate key parameters like Imax, Vmax, and Pmax.",
         dest=st.session_state.language).text)
 
     st.write(translator.translate("---", dest=st.session_state.language).text)
@@ -114,8 +114,38 @@ def green_hydrogen_predict():
                     st.success(translator.translate(f"Temperature: {temperature} °C", dest=st.session_state.language).text)
 
                     novos_dados = []
+                     # Para cada linha de dados, realiza o cálculo
                     for idx, row in dados_eletricos.iterrows():
                         Imax_calculado, Vmax_calculado, Pmax_calculado, Imax_sis_calculado, Vmax_sis_calculado, Pmax_sis_calculado = calcular_parametros(temperature, irradiance, row)
+                        
+                        # Aplicar lógica de conversão de unidades
+                        # Converter Pmax_sis
+                        if Pmax_sis_calculado >= 1000000:
+                            Pmax_sis_calculado = round(Pmax_sis_calculado / 1000000, 2)  # Converter para TW
+                            unidade_potencia = "TW"
+                        elif Pmax_sis_calculado >= 1000:
+                            Pmax_sis_calculado = round(Pmax_sis_calculado / 1000, 2)  # Converter para MW
+                            unidade_potencia = "MW"
+                        else:
+                            Pmax_sis_calculado = round(Pmax_sis_calculado, 2)  # Manter em W
+                            unidade_potencia = "W"
+
+                        # Converter Imax_sis
+                        if Imax_sis_calculado >= 1000:
+                            Imax_sis_calculado = round(Imax_sis_calculado / 1000, 2)  # Converter para kA
+                            unidade_corrente = "kA"
+                        else:
+                            Imax_sis_calculado = round(Imax_sis_calculado, 2)  # Manter em A
+                            unidade_corrente = "A"
+
+                        # Converter Vmax_sis
+                        if Vmax_sis_calculado >= 1000:
+                            Vmax_sis_calculado = round(Vmax_sis_calculado / 1000, 2)  # Converter para kV
+                            unidade_tensao = "kV"
+                        else:
+                            Vmax_sis_calculado = round(Vmax_sis_calculado, 2)  # Manter em V
+                            unidade_tensao = "V"
+
                         if Imax_calculado is not None:
                             novos_dados.append({
                                 'Module Type': row['module_type'],
@@ -134,17 +164,21 @@ def green_hydrogen_predict():
                             #st.write(f"Vmax Calculado (Módulo): {Vmax_calculado} V")
                             #st.write(f"Pmax Calculado (Módulo): {Pmax_calculado} W")
                             
-                            # Exibir os resultados para a usina
-                            st.write(f"Imax Calculado (Usina): {Imax_sis_calculado} A")
-                            st.write(f"Vmax Calculado (Usina): {Vmax_sis_calculado} V")
-                            st.write(f"Pmax Calculado (Usina): {Pmax_sis_calculado} W")
+                            # Exibir os resultados com as unidades convertidas
+                            st.write(f"Imax Calculado (Usina): {Imax_sis_calculado} {unidade_corrente}")
+                            st.write(f"Vmax Calculado (Usina): {Vmax_sis_calculado} {unidade_tensao}")
+                            st.write(f"Pmax Calculado (Usina): {Pmax_sis_calculado} {unidade_potencia}")
 
+                    # Adiciona os novos dados ao histórico
                     novos_dados_df = pd.DataFrame(novos_dados)
 
+                    # Atualiza o histórico no session state
                     st.session_state['inputs_history'] = pd.concat([st.session_state['inputs_history'], novos_dados_df], ignore_index=True)
-
+                    
+                    # Salva no cache
                     save_to_cache()
 
+                    # Exibe o botão de download do CSV
                     csv_historico = novos_dados_df.to_csv(index=False)
                     st.download_button(
                         label=translator.translate("Download Updated CSV", dest=st.session_state.language).text,

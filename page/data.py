@@ -61,16 +61,16 @@ def data():
             "gamma": "Power Temperature Coefficient (γ): Refers to the percentage variation of power with temperature.",
             "mu": "Efficiency (μ): Represents the percentage decrease in module efficiency per year.",
             "noct": "Nominal Operating Cell Temperature (NOCT): The temperature the module reaches under standard test conditions (800 W/m² irradiance, 20°C ambient temperature, and 1 m/s wind speed).",
-            "cells": "Number of photovoltaic cells: Number of cells in the photovoltaic module according to the datasheet.",
+            "cells": "Number of photovoltaic cells: Number of cells in the photovoltaic module.",
             "diode_factor": "Diode ideality factor: Represents the quality of the diode in the single diode model."
         },
         "pt": {
             "alpha": "Coeficiente de temperatura da corrente de curto-circuito (α): Indica a variação percentual da corrente de curto-circuito com a temperatura.",
             "beta": "Coeficiente de temperatura da tensão de circuito aberto (β): Representa a variação percentual da tensão de circuito aberto com a temperatura.",
-            "gamma": "Coeficiente de temperatura da potência (γ): Refere-se à variação percentual da potência com a temperatura.",
-            "mu": "Eficiência (μ): Representa a diminuição percentual da eficiência do módulo por ano.",
+            "gamma": "Coeficiente de temperatura da potência (γ): Refere-se a variação percentual da potência com a temperatura.",
+            "mu": "Eficiência (μ): Representa a diminuição em percentual da eficiência do módulo por ano.",
             "noct": "Temperatura nominal de operação da célula (NOCT): Temperatura que o módulo alcança em condições padrão de teste (800 W/m² de irradiância, 20°C de temperatura ambiente, e 1 m/s de velocidade do vento).",
-            "cells": "Número de células fotovoltaicas: Quantidade de células no módulo fotovoltaico conforme o datasheet.",
+            "cells": "Número de células fotovoltaicas: Quantidade de células disponíveis no módulo fotovoltaico.",
             "diode_factor": "Fator de idealidade do diodo: Representa a qualidade do diodo no modelo de diodo simples."
         }
     }
@@ -235,7 +235,7 @@ def data():
 
             with col1:
                 input_module_type = st.selectbox(translate("Selecione o tipo de módulo fotovoltaico a ser analisado:", lang_code, translator), photovoltaic_module_type_translated)
-                input_power = st.number_input(translate("Poder (W):", lang_code, translator), min_value=0.0)
+                input_power = st.number_input(translate("Potência (W):", lang_code, translator), min_value=0.0)
                 input_voltage_max = st.number_input(translate("Tensão máxima (V):", lang_code, translator), min_value=0.0)
                 input_current_max = st.number_input(translate("Corrente máxima (A):", lang_code, translator), min_value=0.0)
                 input_voltage_open = st.number_input(translate("Tensão de circuito aberto (V):", lang_code, translator), min_value=0.0)

@@ -119,3 +119,6 @@ def predict_data():
                         st.info(f"Pmax (Calculated): {pmax_calculated:.2f} W")
                 else:
                     st.error(translator.translate("Please enter valid values.", dest=st.session_state.language).text)
+
+        if tipo_calculo == "Real":
+            st.warning("Working in Process (W.I.P)")

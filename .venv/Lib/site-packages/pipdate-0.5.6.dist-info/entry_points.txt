@@ -1,0 +1,2 @@
+[console_scripts]
+pipdate = pipdate.__main__:update

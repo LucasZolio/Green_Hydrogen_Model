@@ -105,9 +105,9 @@ def predict_data():
                     alpha = float(row['alpha'])
                     beta = float(row['beta'])
 
-                    Imax_calculado = imax * (G / Gref)
-                    Vmax_calculado = vmax * (1 + beta * (T - Tref))
-                    Pmax_calculado = round(Imax_calculado * Vmax_calculado, 2)
+                    Imax_calculado = imax * (G / Gref) #Verificar e corrigir equação 
+                    Vmax_calculado = vmax * (1 + beta * (T - Tref)) #Verificar e corrigir equação 
+                    Pmax_calculado = round(Imax_calculado * Vmax_calculado, 2) 
 
                     return Imax_calculado, Vmax_calculado, Pmax_calculado
                 except KeyError as e:

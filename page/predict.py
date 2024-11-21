@@ -42,9 +42,17 @@ def predict_data():
             st.error(f"Error loading the CSV file: {e}")
             return None
 
-    # Dados elétricos do módulo
-    dados_eletricos = st.session_state.get('store_data')
+    # Mantém o arquivo carregado, se existente
+    arquivo_padrao = '/mnt/data/datasheet_data.csv'
+    if 'store_data' not in st.session_state:
+        if os.path.exists(arquivo_padrao):
+            dados_eletricos = carregar_dados_datasheet(arquivo_padrao)
+        else:
+            dados_eletricos = None
+    else:
+        dados_eletricos = st.session_state['store_data']
 
+    # Permite carregar um arquivo caso o padrão não exista
     if dados_eletricos is None:
         upload_file = st.file_uploader(
             translator.translate("Upload the photovoltaic module datasheet (CSV)", dest=st.session_state.language).text,
@@ -82,7 +90,7 @@ def predict_data():
             )
             temperature = st.number_input(
                 translator.translate("Enter the Temperature (°C)", dest=st.session_state.language).text,
-                min_value=-5.0, step=0.1
+                min_value=0.0, step=0.1
             )
 
             Tref = 25  # Temperatura de referência (°C)
